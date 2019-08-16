@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-community/async-storage'
-import { 
-    KeyboardAvoidingView, 
-    StyleSheet,
-    Image,
-    TextInput,
-    Text,
-    TouchableOpacity,
-    Platform
+import AsyncStorage from '@react-native-community/async-storage';
+import {
+  KeyboardAvoidingView,
+  StyleSheet,
+  Image,
+  TextInput,
+  Text,
+  TouchableOpacity,
+  Platform
 } from 'react-native';
 import api from '../services/api';
 import logo from '../assets/logo.png';
@@ -17,43 +17,41 @@ export default function Login({ navigation }) {
 
   useEffect(() => {
     AsyncStorage.getItem('user').then(user => {
-      if(user)
-        navigation.navigate('Main', { user });
-    })
+      if (user) navigation.navigate('Main', { user });
+      console.log(user);
+    });
   }, []);
 
-  async function handleLogin(){
+  async function handleLogin() {
     const response = await api.post('/devs', { username: user });
     const { _id } = response.data;
 
     await AsyncStorage.setItem('user', _id);
-    navigation.navigate('Main', { _id });
-  };
+    navigation.navigate('Main', { user: _id });
+  }
 
   return (
-    <KeyboardAvoidingView 
-        behavior="padding"
-        enabled={Platform.OS === 'ios'}
-        style={styles.container} 
+    <KeyboardAvoidingView
+      behavior="padding"
+      enabled={Platform.OS === 'ios'}
+      style={styles.container}
     >
-        <Image source={logo}/>
-        <TextInput 
-            autoCapitalize="none"
-            autoCorrect={false}
-            placeholder="Digite seu usuário no Github"
-            placeholderTextColor="#999"
-            style={styles.input}
-            value={user}
-            onChangeText={setUser}
-        />
-        <TouchableOpacity 
-          onPress={handleLogin}
-          style={styles.button}>
-            <Text style={styles.buttonText}>Enviar</Text>
-        </TouchableOpacity>
+      <Image source={logo} />
+      <TextInput
+        autoCapitalize="none"
+        autoCorrect={false}
+        placeholder="Digite seu usuário no Github"
+        placeholderTextColor="#999"
+        style={styles.input}
+        value={user}
+        onChangeText={setUser}
+      />
+      <TouchableOpacity onPress={handleLogin} style={styles.button}>
+        <Text style={styles.buttonText}>Enviar</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -86,7 +84,7 @@ const styles = StyleSheet.create({
   },
 
   buttonText: {
-    color: "#fff",
+    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16
   }

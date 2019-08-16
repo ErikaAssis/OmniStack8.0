@@ -1,83 +1,183 @@
-import React from 'react';
-import { SafeAreaView, View, Image, Text, StyleSheet} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import AsyncStorage from '@react-native-community/async-storage;'
+import {
+  SafeAreaView,
+  View,
+  Image,
+  Text,
+  StyleSheet,
+  TouchableOpacity
+} from 'react-native';
+
+import api from '../services/api';
 import logo from '../assets/logo.png';
+import like from '../assets/like.png';
+import dislike from '../assets/dislike.png';
 
-export default function Main() {
-    return (
-        <SafeAreaView style={styles.container}>
-            <Image style={styles.logo} source={logo}/>
-            <View style={styles.cardsContainers}>
-                <View style={[styles.stylesCard, { zIndex: 3 }]}>
-                    <Image style={styles.avatar} source={{
-                        uri: 'https://www.google.com/search?q=imagem&tbm=isch&source=iu&ictx=1&fir=gix4jb-SSOwM3M%253A%252CC9p-CW8uwnDZjM%252C_&vet=1&usg=AI4_-kQWWK7_-fca5Kz2DjzrzCrWyzBVZg&sa=X&ved=2ahUKEwjRjuWjkoDkAhW8IbkGHc3YBzwQ9QEwAHoECAcQBA#imgrc=gix4jb-SSOwM3M:'
-                    }}/>
-                    <View style={styles.footer}>
-                        <Text style={styles.name}>Diego Fernandes</Text>
-                        <Text style={styles.bio} numberOfLines={3}>CTO da Rocketseat</Text>
-                    </View>
-                </View>
-            </View>
+export default function Main({ navigation }) {
+	const id = navigation.getParam('user');
+	const [users, setUsers] = useState([]);
 
-            <View>
-                
-            </View>
-        </SafeAreaView>
-    );
+	useEffect(() => {
+		async function loadUsers() {
+		const response = await api.get('/devs', {
+			headers: { user: id }
+		});
+
+		setUsers(response.data);
+		}
+
+		loadUsers();
+	}, [id]);
+
+	async function handleLike() {
+		const [ user, ...rest ] = users;
+		await api.post(`/devs/${user._id}/likes`, null, {
+		headers: { user: id }
+		});
+
+		setUsers(rest);
+	}
+
+	async function handleDislike() {
+		const [ user, ...rest ] = users;
+		await api.post(`/devs/${user._id}/dislikes`, null, {
+		headers: { user: id }
+		});
+
+		setUsers(rest);
+	}
+
+	function handleLogout(){
+		await AsyncStorage.clear();
+		navigation.navigate('Login');
+	}
+
+	return (
+		<SafeAreaView style={styles.container}>
+			<TouchableOpacity onPress={handleLogout}>
+				<Image style={styles.logo} source={logo} />
+			</TouchableOpacity>
+		
+
+		<View style={styles.cardsContainers}>
+			{users.length == 0 ? (
+			<Text style={styles.empty}>Acabou :(</Text>
+			) : (
+			users.map(user, index => (
+				<View
+				key={user._id}
+				style={[styles.stylesCard, { zIndex: users.length - index }]}
+				>
+				<Image style={styles.avatar} source={{ uri: user.avatar }} />
+				<View style={styles.footer}>
+					<Text style={styles.name}>{user.name}</Text>
+					<Text style={styles.bio} numberOfLines={3}>
+					{user.bio}
+					</Text>
+				</View>
+				</View>
+			))
+			)}
+		</View>
+		
+		{users.length > 0 && (
+			<View>
+				<TouchableOpacity style={styles.button} onPress={handleDislike}>
+					<Image source={dislike} />
+				</TouchableOpacity>
+				<TouchableOpacity style={styles.button} onPress={handleLike}>
+					<Image source={like} />
+				</TouchableOpacity>
+			</View>
+		)}
+		</SafeAreaView>
+	);
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#f5f5f5',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-    },
+  	container: {
+		flex: 1,
+		backgroundColor: '#f5f5f5',
+		alignItems: 'center',
+		justifyContent: 'space-between'
+	},
 
-    logo: {
-        marginTop: 30
-    },
+	logo: {
+		marginTop: 30
+	},
 
-    cardsContainers: {
-        flex: 1,
-        alignSelf: 'stretch',
-        justifyContent: 'center',
-        maxHeight: 500
-    },
+	empty: {
+		alignSelf: 'center',
+		color: '#999',
+		fontSize: 24,
+		fontWeight: 'bold'
+	},
 
-    card: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        margin: 30,
-        overflow: 'hidden',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0
-    },
-    
-    avatar: {
-        flex: 1,
-        height: 300,
-    },
+	cardsContainers: {
+		flex: 1,
+		alignSelf: 'stretch',
+		justifyContent: 'center',
+		maxHeight: 500
+	},
 
-    footer: {
-        backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingVertical: 15
-    },
+	card: {
+		borderWidth: 1,
+		borderColor: '#ddd',
+		borderRadius: 8,
+		margin: 30,
+		overflow: 'hidden',
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0
+	},
 
-    name: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: '#333'
-    },
+	avatar: {
+		flex: 1,
+		height: 300
+	},
 
-    bio: {
-        fontSize: 14,
-        color: '#999',
-        marginTop: 5,
-        lineHeight: 18
-    }
+	footer: {
+		backgroundColor: '#fff',
+		paddingHorizontal: 20,
+		paddingVertical: 15
+	},
+
+	name: {
+		fontSize: 16,
+		fontWeight: 'bold',
+		color: '#333'
+	},
+
+	bio: {
+		fontSize: 14,
+		color: '#999',
+		marginTop: 5,
+		lineHeight: 18
+	},
+
+	buttonsContainer: {
+		flexDirection: 'row',
+		marginButton: 30
+	},
+
+	button: {
+		width: 50,
+		height: 50,
+		borderRadios: 25,
+		backgroundColor: '#fff',
+		justifyContent: 'center',
+		alignItems: 'center',
+		marginHorizontal: 20,
+		elevation: 2,
+		shadowColor: '#000',
+		shadowOpacity: 0.05,
+		shadowRadius: 2,
+		shadowOffset: {
+		width: 0,
+		height: 2
+		}
+	}
 });
