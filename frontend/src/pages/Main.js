@@ -6,10 +6,12 @@ import './Main.css';
 import logo from '../assets/logo.svg';
 import like from '../assets/like.svg';
 import dislike from '../assets/dislike.svg';
+import itsamatch from '../assets/itsamatch.png';
 import api from '../services/api';
 
 export default function Main({ match }) {
   const [users, setUsers] = useState([]);
+  const [matchDev, setMatchDev] = useState(null);
 
   useEffect(() => {
     async function loadUsers() {
@@ -29,7 +31,7 @@ export default function Main({ match }) {
     });
 
     socket.on('match', dev => {
-      console.log(dev);
+      setMatchDev(dev);
     });
   }, [match.params.id]);
 
@@ -77,6 +79,19 @@ export default function Main({ match }) {
         </ul>
       ) : (
         <div className="empty"> Acabou :(</div>
+      )}
+
+      {matchDev && (
+        <div className="match-container">
+          <img src={itsamatch} alt="Its a Match" />
+          <img className="avatar" src={matchDev.avatar} alt={matchDev.name} />
+          <strong>{matchDev.name}</strong>
+          <p>{matchDev.bio}</p>
+
+          <button type="button" onClick={() => setMatchDev(null)}>
+            FECHAR
+          </button>
+        </div>
       )}
     </div>
   );
