@@ -18,12 +18,11 @@ export default function Login({ navigation }) {
   useEffect(() => {
     AsyncStorage.getItem('user').then(user => {
       if (user) navigation.navigate('Main', { user });
-      console.log(user);
     });
   }, []);
 
   async function handleLogin() {
-    const response = await api.post('/devs', { username: user });
+    const response = await api.post('/devs', { user });
     const { _id } = response.data;
 
     await AsyncStorage.setItem('user', _id);
